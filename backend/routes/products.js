@@ -19,7 +19,8 @@ router.get('/', authenticate, async (req, res, next) => {
     let sql = `${JOIN} WHERE f.name LIKE ?`;
     const params = [`%${search}%`];
     if (box_size_id) { sql += ' AND p.box_size_id = ?'; params.push(box_size_id); }
-    sql += ' ORDER BY f.name, FIELD(b.name,"Small","Medium","Large")';
+    // FIXED: Changed double quotes to single quotes for MySQL
+    sql += " ORDER BY f.name, FIELD(b.name, 'Small', 'Medium', 'Large')";
     const [rows] = await pool.query(sql, params);
     res.json(rows);
   } catch (e) { next(e); }
