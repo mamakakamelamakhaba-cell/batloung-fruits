@@ -96,7 +96,7 @@ router.get('/purchases-summary', authenticate, async (_req, res, next) => {
     const [rows] = await pool.query(`
       SELECT
         COUNT(*) AS total_purchases,
-        COALESCE(SUM(total_cost), 0) AS total_cost,
+        COALESCE(SUM(quantity * unit_cost), 0) AS total_cost,
         COALESCE(SUM(quantity), 0) AS total_boxes
       FROM purchases`);
     res.json(rows[0]);
