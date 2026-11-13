@@ -6,7 +6,8 @@ const router = express.Router();
 // GET /api/boxsizes  — list all three box sizes
 router.get('/', authenticate, async (_req, res, next) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM box_sizes ORDER BY FIELD(name,"Small","Medium","Large")');
+    // FIXED: Changed double quotes to single quotes for MySQL
+    const [rows] = await pool.query("SELECT * FROM box_sizes ORDER BY FIELD(name, 'Small', 'Medium', 'Large')");
     res.json(rows);
   } catch (e) { next(e); }
 });
