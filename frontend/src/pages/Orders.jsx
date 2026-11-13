@@ -65,12 +65,13 @@ export default function Orders() {
   const changeStatus = async (id, status) => {
     try {
       await api.put(`/orders/${id}/status`, { status });
+      toast(`✅ Status → "${status}"`, 'success');
       load();
       if (detail) openDetail(id);
     } catch (e) { alert(e.response?.data?.message || 'Could not update status'); }
   };
   const remove = async (id) => {
-    if (confirm('Delete this order?')) { await api.delete(`/orders/${id}`); setDetail(null); load(); }
+    if (confirm('Delete this order?')) { await api.delete(`/orders/${id}`); toast('🗑️ Order deleted.', 'success'); setDetail(null); load(); }
   };
 
   const pending   = rows.filter(r => r.status === 'Pending').length;

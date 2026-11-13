@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api, { money } from '../api/client';
 import { fruitImg } from '../api/fruitImg.js';
@@ -31,6 +31,7 @@ export default function Dashboard() {
     ).catch(() => {});
     // Load recent real orders from API
     api.get('/orders', { params: { limit: 5 } }).then(r => setRecentOrders(r.data.slice(0, 5))).catch(() => {});
+    api.get('/reports/purchases-summary').then(r => setPurchases(r.data)).catch(() => {});
   }, []);
 
   const cards = [
@@ -169,6 +170,27 @@ export default function Dashboard() {
           </div>
         ))}
       </div>
+
+      {/* PURCHASES SUMMARY STRIP */}
+      {purchases && Number(purchases.total_purchases) > 0 && (
+        <div style={{
+          display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap',
+          background: 'linear-gradient(135deg,#0B2519,#1d4b2f)',
+          borderRadius: '14px', padding: '18px 24px', alignItems: 'center',
+        }}>
+          <span style={{ fontSize: '22px' }}>📥</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Stock Purchases</div>
+            <div style={{ color: '#fff', fontWeight: 700, fontSize: '15px', marginTop: '2px' }}>
+              {purchases.total_purchases} purchase{Number(purchases.total_purchases) !== 1 ? 's' : ''} · {purchases.total_boxes} boxes received
+            </div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Total Cost</div>
+            <div style={{ color: '#FBB040', fontWeight: 800, fontSize: '20px', fontFamily: 'Outfit,sans-serif' }}>{money(purchases.total_cost)}</div>
+          </div>
+        </div>
+      )}
 
       {/* CHARTS ROW */}
       <div className="charts-grid" style={{ marginBottom: '24px' }}>
