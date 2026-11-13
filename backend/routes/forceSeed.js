@@ -17,12 +17,14 @@ router.get('/:key', async (req, res) => {
     });
 
     const sql = `
-      DELETE FROM stock_movements;
-      DELETE FROM order_items;
-      DELETE FROM orders;
-      DELETE FROM purchases;
-      DELETE FROM street_vendors;
-      DELETE FROM suppliers;
+      SET FOREIGN_KEY_CHECKS = 0;
+      TRUNCATE TABLE stock_movements;
+      TRUNCATE TABLE order_items;
+      TRUNCATE TABLE orders;
+      TRUNCATE TABLE purchases;
+      TRUNCATE TABLE street_vendors;
+      TRUNCATE TABLE suppliers;
+      SET FOREIGN_KEY_CHECKS = 1;
       
       INSERT IGNORE INTO suppliers (name, province, contact_person, telephone, email, address) VALUES
       ('Cape Orchard Co.', 'Western Cape', 'Thabo Mokoena', '+27 21 555 0101', 'sales@capeorchard.co.za', '12 Vineyard Rd, Stellenbosch'),
