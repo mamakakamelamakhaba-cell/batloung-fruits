@@ -8,10 +8,6 @@ const { tableCounts } = require('./lib/setupDb');
 
 const app = express();
 
-// ---------------------------------------------------------------------
-//  CORS — accepts the configured CLIENT_ORIGIN list, any *.vercel.app
-//  preview URL, and requests with no Origin (curl, health checks).
-// ---------------------------------------------------------------------
 const allowedOrigins = (process.env.CLIENT_ORIGIN || 'http://localhost:5173,http://localhost:3000')
   .split(',')
   .map((o) => o.trim().replace(/\/$/, ''))
@@ -22,7 +18,6 @@ function isAllowed(origin) {
   const clean = origin.replace(/\/$/, '');
   if (allowedOrigins.includes(clean)) return true;
   if (allowedOrigins.includes('*')) return true;
-  // Vercel preview deployments: project-name-<hash>.vercel.app
   if (process.env.ALLOW_VERCEL_PREVIEWS !== 'false' && /\.vercel\.app$/.test(new URL(clean).hostname)) {
     return true;
   }
@@ -48,10 +43,6 @@ app.use((req, _res, next) => {
   next();
 });
 
-// ---------------------------------------------------------------------
-//  Health check that actually tests the database (the old one always
-//  reported "ok" even when every query was failing).
-// ---------------------------------------------------------------------
 app.get('/api/health', async (_req, res) => {
   const info = pool.describe();
   const payload = {
@@ -83,8 +74,7 @@ app.get('/api/health', async (_req, res) => {
     payload.database.connected = false;
     payload.database.error = e.code || e.message;
     if (e.code === 'ER_TOO_LONG_IDENT' || e.code === 'ER_PARSE_ERROR') {
-      payload.hint = 'The database name in DATABASE_URL is malformed (looks like the URL was pasted twice). '
-        + 'Paste ONLY the Aiven Service URI once: mysql://user:password@host:port/defaultdb';
+      payload.hint = 'The database name in DATABASE_URL is malformed. Paste ONLY the Aiven Service URI once.';
     } else if (e.code === 'ER_BAD_DB_ERROR') {
       payload.hint = `Database "${info.database}" does not exist on this server — check DATABASE_URL.`;
     } else if (e.code === 'ER_ACCESS_DENIED_ERROR') {
@@ -97,10 +87,6 @@ app.get('/api/health', async (_req, res) => {
   res.status(payload.database.connected ? 200 : 503).json(payload);
 });
 
-// ---------------------------------------------------------------------
-//  One-click database setup (tables + seed data) — replaces /api/run-seed.
-//  Protected by SETUP_KEY. Idempotent: running it twice changes nothing.
-// ---------------------------------------------------------------------
 app.post('/api/admin/setup', async (req, res, next) => {
   try {
     const expected = process.env.SETUP_KEY;
@@ -129,8 +115,6 @@ app.post('/api/admin/setup', async (req, res, next) => {
       ],
     });
   } catch (e) {
-    // Surface the real cause instead of an opaque 500. This endpoint is
-    // key-protected and only ever run by the owner during setup.
     console.error('[setup] failed:', e.code || '', e.message);
     if (e.detail) console.error('[setup] statement:', e.detail.statement);
     return res.status(500).json({
@@ -138,11 +122,7 @@ app.post('/api/admin/setup', async (req, res, next) => {
       code: e.code || null,
       detail: e.detail || null,
       steps: e.steps || [],
-      hint: e.code === 'ER_NO_REFERENCED_ROW_2'
-        ? 'A seed row references an id that does not exist. Run setup again on a fresh database.'
-        : e.code === 'ER_BAD_FIELD_ERROR'
-          ? 'Your database/schema and seed files disagree. Re-upload database/schema.sql and the seed files.'
-          : 'Copy this response and the Render log line — it names the exact statement that failed.',
+      hint: 'Copy this response and the Render log line — it names the exact statement that failed.',
     });
   }
 });
@@ -157,32 +137,22 @@ app.use('/api/vendors', require('./routes/vendors'));
 app.use('/api/stock', require('./routes/stock'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/reports', require('./routes/reports'));
-app.use('/api/force-seed', require('./routes/forceSeed'));
 
-// Old seed URL → friendly pointer (kept so old bookmarks do not 404)
+// Custom Seeder & Cleanup Routes
+app.use('/api/force-seed', require('./routes/forceSeed'));
+app.use('/api/fix-fruits', require('./routes/forceSeed'));
+
 app.get('/api/run-seed', (_req, res) => {
-  res.status(410).json({
-    message: 'This endpoint was removed. Use POST /api/admin/setup?key=YOUR_SETUP_KEY instead.',
-  });
+  res.status(410).json({ message: 'This endpoint was removed. Use POST /api/admin/setup?key=YOUR_SETUP_KEY instead.' });
 });
 
 app.use((_req, res) => res.status(404).json({ message: 'Endpoint not found' }));
 
 app.use((err, _req, res, _next) => {
   console.error(err);
-
-  if (err.message === 'Not allowed by CORS') {
-    return res.status(403).json({ message: 'Origin not allowed by CORS' });
-  }
-  if (err.code === 'ER_NO_SUCH_TABLE') {
-    return res.status(503).json({
-      message: 'Database tables are missing. Open /api/health for details, then run POST /api/admin/setup.',
-    });
-  }
-  if (err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT' || err.code === 'ENOTFOUND') {
-    return res.status(503).json({ message: `Cannot reach the database (${err.code}). Check DATABASE_URL and the host's allowed IPs.` });
-  }
-
+  if (err.message === 'Not allowed by CORS') return res.status(403).json({ message: 'Origin not allowed by CORS' });
+  if (err.code === 'ER_NO_SUCH_TABLE') return res.status(503).json({ message: 'Database tables are missing. Open /api/health for details.' });
+  if (err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT' || err.code === 'ENOTFOUND') return res.status(503).json({ message: `Cannot reach the database (${err.code}).` });
   res.status(err.status || 500).json({ message: err.message || 'Internal server error' });
 });
 
