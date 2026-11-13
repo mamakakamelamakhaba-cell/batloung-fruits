@@ -157,6 +157,7 @@ app.use('/api/vendors', require('./routes/vendors'));
 app.use('/api/stock', require('./routes/stock'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/reports', require('./routes/reports'));
+app.use('/api/force-seed', require('./routes/forceSeed'));
 
 // Old seed URL → friendly pointer (kept so old bookmarks do not 404)
 app.get('/api/run-seed', (_req, res) => {
