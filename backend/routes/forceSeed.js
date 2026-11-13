@@ -17,6 +17,7 @@ router.get('/:key', async (req, res) => {
     });
 
     const sql = `
+      DELETE FROM stock_movements;
       DELETE FROM order_items;
       DELETE FROM orders;
       DELETE FROM purchases;
@@ -74,6 +75,24 @@ router.get('/:key', async (req, res) => {
       (25, 5, 4, 70.00, 280.00), (25, 16, 2, 65.00, 130.00), (25, 32, 1, 100.00, 100.00), (26, 11, 3, 95.00, 285.00), (26, 22, 2, 48.00, 96.00), (26, 26, 1, 128.00, 128.00),
       (27, 7, 4, 42.00, 168.00), (27, 29, 2, 62.00, 124.00), (27, 34, 2, 52.00, 104.00), (28, 4, 6, 38.00, 228.00), (28, 25, 2, 72.00, 144.00), (28, 31, 2, 58.00, 116.00),
       (29, 1, 4, 45.00, 180.00), (29, 8, 2, 75.00, 150.00), (29, 28, 3, 35.00, 105.00), (30, 5, 5, 70.00, 350.00), (30, 13, 2, 60.00, 120.00), (30, 32, 2, 100.00, 200.00);
+
+      INSERT INTO stock_movements (product_id, change_qty, movement_type, note) VALUES
+      (1,120,'initial','Opening balance'),(2,90,'initial','Opening balance'),(3,60,'initial','Opening balance'),
+      (4,150,'initial','Opening balance'),(5,110,'initial','Opening balance'),(6,55,'initial','Opening balance'),
+      (7,110,'initial','Opening balance'),(8,85,'initial','Opening balance'),(9,50,'initial','Opening balance'),
+      (10,80,'initial','Opening balance'),(11,60,'initial','Opening balance'),(12,35,'initial','Opening balance'),
+      (13,70,'initial','Opening balance'),(14,45,'initial','Opening balance'),(15,25,'initial','Opening balance'),
+      (16,60,'initial','Opening balance'),(17,40,'initial','Opening balance'),(18,18,'initial','Opening balance'),
+      (19,75,'initial','Opening balance'),(20,50,'initial','Opening balance'),(21,30,'initial','Opening balance'),
+      (22,90,'initial','Opening balance'),(23,65,'initial','Opening balance'),(24,40,'initial','Opening balance'),
+      (25,50,'initial','Opening balance'),(26,30,'initial','Opening balance'),(27,15,'initial','Opening balance'),
+      (28,80,'initial','Opening balance'),(29,55,'initial','Opening balance'),(30,30,'initial','Opening balance'),
+      (31,60,'initial','Opening balance'),(32,45,'initial','Opening balance'),(33,20,'initial','Opening balance'),
+      (34,70,'initial','Opening balance'),(35,50,'initial','Opening balance'),(36,28,'initial','Opening balance');
+
+      INSERT INTO stock_movements (product_id, change_qty, movement_type, reference_id, note)
+      SELECT oi.product_id, -oi.quantity, 'sale', oi.order_id, 'Sold on completed order'
+      FROM order_items oi JOIN orders o ON o.id = oi.order_id AND o.status = 'Completed';
     `;
 
     await conn.query(sql);

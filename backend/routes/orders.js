@@ -3,6 +3,9 @@ const pool = require('../config/db');
 const { authenticate, authorize } = require('../middleware/auth');
 const router = express.Router();
 
+// Must be defined BEFORE any route that uses it
+function httpError(status, message) { const e = new Error(message); e.status = status; return e; }
+
 const STATUSES = ['Pending','Confirmed','Processing','Ready for Collection/Delivery','Completed','Cancelled'];
 
 // GET /api/orders  (filter by status / vendor)
@@ -162,7 +165,5 @@ router.delete('/:id', authenticate, authorize('Administrator'), async (req, res,
     res.json({ message: 'Order deleted' });
   } catch (e) { next(e); }
 });
-
-function httpError(status, message) { const e = new Error(message); e.status = status; return e; }
 
 module.exports = router;
