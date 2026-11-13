@@ -6,7 +6,6 @@ router.get('/:key', async (req, res) => {
   if (req.params.key !== process.env.SETUP_KEY) return res.status(403).send('Unauthorized');
 
   try {
-    // We use "multipleStatements: true" via a direct connection to run everything at once
     const mysql = require('mysql2/promise');
     let dbUrl = process.env.DATABASE_URL || '';
     dbUrl = dbUrl.split('?')[0];
@@ -17,7 +16,6 @@ router.get('/:key', async (req, res) => {
       multipleStatements: true
     });
 
-    // The exact SQL to fix the data (no DROP/CREATE, no USE)
     const sql = `
       DELETE FROM order_items;
       DELETE FROM orders;
@@ -25,7 +23,7 @@ router.get('/:key', async (req, res) => {
       DELETE FROM street_vendors;
       DELETE FROM suppliers;
       
-      INSERT INTO suppliers (name, province, contact_person, telephone, email, address) VALUES
+      INSERT IGNORE INTO suppliers (name, province, contact_person, telephone, email, address) VALUES
       ('Cape Orchard Co.', 'Western Cape', 'Thabo Mokoena', '+27 21 555 0101', 'sales@capeorchard.co.za', '12 Vineyard Rd, Stellenbosch'),
       ('Freestate Farms', 'Free State', 'Lerato Dlamini', '+27 51 555 0202', 'info@fsfarms.co.za', '45 Maize Ave, Bloemfontein'),
       ('Limpopo Tropical', 'Limpopo', 'Sipho Nkosi', '+27 15 555 0303', 'orders@limpopotrop.co.za', '7 Baobab St, Polokwane'),
@@ -39,7 +37,7 @@ router.get('/:key', async (req, res) => {
       ('Lowveld Citrus Estate', 'Mpumalanga', 'Andile Ngcobo', '+27 13 555 1111', 'citrus@lowveldest.co.za', '15 Citrus Way, White River'),
       ('Highveld Stone Fruits', 'Free State', 'Christa van Zyl', '+27 51 555 1212', 'stone@highveldf.co.za', '72 Peach Rd, Ficksburg');
 
-      INSERT INTO street_vendors (name, business_name, telephone, location, registration_date, status) VALUES
+      INSERT IGNORE INTO street_vendors (name, business_name, telephone, location, registration_date, status) VALUES
       ('Palesa Mohapi', 'Palesa Fresh Stall', '+266 5800 1111', 'Maseru CBD', '2026-01-15', 'Active'),
       ('Teboho Letsie', 'Teboho Fruit Corner', '+266 5800 2222', 'Khubetsoana', '2026-02-03', 'Active'),
       ('Mamello Ranthako', 'Mamello Market', '+266 5800 3333', 'Thetsane', '2026-02-20', 'Active'),
