@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: batloung-fruits-api
+    runtime: node
+    plan: free
+    region: frankfurt            # pick the region closest to the DB
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # --- Database ---------------------------------------------------
+      # Paste the full connection string from your MySQL host (Aiven,
+      # Railway, Clever Cloud...). Set it in the Render dashboard, NOT here.
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 8h
+      # --- CORS -------------------------------------------------------
+      - key: CLIENT_ORIGIN
+        value: https://batloung-fruits-frontend.vercel.app
+      - key: ALLOW_VERCEL_PREVIEWS
+        value: "true"
+      # --- One-time DB setup passphrase -------------------------------
+      - key: SETUP_KEY
+        sync: false

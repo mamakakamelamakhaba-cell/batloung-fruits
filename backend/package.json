@@ -1,0 +1,28 @@
+{
+  "name": "batloung-fruits-backend",
+  "version": "1.0.0",
+  "description": "Batloung Fruits Distribution Management System - Express/Node REST API (Render + Aiven ready)",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "seed": "node seed.js",
+    "setup:db": "node scripts/setup-cli.js",
+    "diagnose": "node scripts/diagnose.js"
+  },
+  "dependencies": {
+    "bcryptjs": "2.4.3",
+    "cors": "2.8.5",
+    "dotenv": "16.4.5",
+    "express": "4.19.2",
+    "jsonwebtoken": "9.0.2",
+    "mysql2": "3.11.0"
+  },
+  "devDependencies": {
+    "nodemon": "3.1.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
