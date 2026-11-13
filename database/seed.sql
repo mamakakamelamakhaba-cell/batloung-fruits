@@ -280,9 +280,15 @@ INSERT INTO order_items (order_id, product_id, quantity, unit_price, subtotal) V
 -- =====================================================================
 -- Recalculate order totals from items
 -- =====================================================================
-UPDATE orders o SET total_amount = (
-  SELECT COALESCE(SUM(subtotal),0) FROM order_items oi WHERE oi.order_id = o.id
-);
+-- MySQL will not read a table inside a subquery of a statement that writes to
+-- the same table (error 1093), so the totals are aggregated first and joined.
+UPDATE orders o
+JOIN (
+  SELECT order_id, COALESCE(SUM(subtotal), 0) AS calc_total
+  FROM order_items
+  GROUP BY order_id
+) t ON t.order_id = o.id
+SET o.total_amount = t.calc_total;
 
 -- =====================================================================
 -- Stock movements ledger  (single source of truth for stock levels)

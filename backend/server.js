@@ -82,11 +82,16 @@ app.get('/api/health', async (_req, res) => {
     payload.status = 'db-error';
     payload.database.connected = false;
     payload.database.error = e.code || e.message;
-    payload.hint = e.code === 'ER_BAD_DB_ERROR'
-      ? `Database "${info.database}" does not exist on this server — check DATABASE_URL.`
-      : e.code === 'ER_ACCESS_DENIED_ERROR'
-        ? 'Wrong database username/password — re-copy DATABASE_URL from your host.'
-        : 'Check that the host allows connections from your Render service and SSL is on.';
+    if (e.code === 'ER_TOO_LONG_IDENT' || e.code === 'ER_PARSE_ERROR') {
+      payload.hint = 'The database name in DATABASE_URL is malformed (looks like the URL was pasted twice). '
+        + 'Paste ONLY the Aiven Service URI once: mysql://user:password@host:port/defaultdb';
+    } else if (e.code === 'ER_BAD_DB_ERROR') {
+      payload.hint = `Database "${info.database}" does not exist on this server — check DATABASE_URL.`;
+    } else if (e.code === 'ER_ACCESS_DENIED_ERROR') {
+      payload.hint = 'Wrong database username/password — re-copy DATABASE_URL from your host.';
+    } else {
+      payload.hint = 'Check that the host allows connections from your Render service and SSL is on.';
+    }
   }
 
   res.status(payload.database.connected ? 200 : 503).json(payload);
@@ -124,7 +129,21 @@ app.post('/api/admin/setup', async (req, res, next) => {
       ],
     });
   } catch (e) {
-    next(e);
+    // Surface the real cause instead of an opaque 500. This endpoint is
+    // key-protected and only ever run by the owner during setup.
+    console.error('[setup] failed:', e.code || '', e.message);
+    if (e.detail) console.error('[setup] statement:', e.detail.statement);
+    return res.status(500).json({
+      message: e.message || 'Setup failed.',
+      code: e.code || null,
+      detail: e.detail || null,
+      steps: e.steps || [],
+      hint: e.code === 'ER_NO_REFERENCED_ROW_2'
+        ? 'A seed row references an id that does not exist. Run setup again on a fresh database.'
+        : e.code === 'ER_BAD_FIELD_ERROR'
+          ? 'Your database/schema and seed files disagree. Re-upload database/schema.sql and the seed files.'
+          : 'Copy this response and the Render log line — it names the exact statement that failed.',
+    });
   }
 });
 
@@ -174,6 +193,7 @@ if (require.main === module) {
     console.log(`Batloung Fruits API running on http://${HOST}:${PORT}`);
     const info = pool.describe();
     console.log(`DB target: ${info.user}@${info.host}:${info.port}/${info.database} (ssl=${info.ssl}, via ${info.mode})`);
+    (info.warnings || []).forEach((w) => console.warn(`DB warning: ${w}`));
     try {
       await pool.query('SELECT 1');
       const t = await tableCounts();

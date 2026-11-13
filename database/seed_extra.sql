@@ -76,9 +76,14 @@ INSERT INTO order_items (order_id, product_id, quantity, unit_price, subtotal) V
 -- =====================================================================
 -- Recalculate totals for the new orders
 -- =====================================================================
-UPDATE orders o SET total_amount = (
-  SELECT COALESCE(SUM(subtotal),0) FROM order_items oi WHERE oi.order_id = o.id
-) WHERE o.id BETWEEN 31 AND 42;
+UPDATE orders o
+JOIN (
+  SELECT order_id, COALESCE(SUM(subtotal), 0) AS calc_total
+  FROM order_items
+  GROUP BY order_id
+) t ON t.order_id = o.id
+SET o.total_amount = t.calc_total
+WHERE o.id BETWEEN 31 AND 42;
 
 -- =====================================================================
 -- Stock movements for new purchases and completed orders

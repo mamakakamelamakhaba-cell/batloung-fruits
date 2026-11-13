@@ -6,6 +6,11 @@ const path = require('path');
 
 const STATEMENT_BREAKERS = /^(USE|CREATE\s+DATABASE|DROP\s+DATABASE)$/i;
 
+// Comment text is dropped while splitting (not just at the start of a
+// statement): the project's seed files put `-- Section title` lines INSIDE
+// multi-row INSERT ... VALUES lists, and MySQL will not accept a comment there
+// once the rows are joined from several source lines. Replacing a comment with
+// a single space keeps tokens on either side of it separated.
 function splitStatements(sql) {
   const out = [];
   let buf = '';
@@ -19,13 +24,11 @@ function splitStatements(sql) {
     const next = sql[i + 1];
 
     if (inLineComment) {
-      if (ch === '\n') inLineComment = false;
-      buf += ch;
+      if (ch === '\n') { inLineComment = false; buf += ch; }
       continue;
     }
     if (inBlockComment) {
-      if (ch === '*' && next === '/') { inBlockComment = false; buf += ch + next; i += 1; continue; }
-      buf += ch;
+      if (ch === '*' && next === '/') { inBlockComment = false; buf += ' '; i += 1; continue; }
       continue;
     }
     if (quote) {
@@ -35,9 +38,15 @@ function splitStatements(sql) {
       continue;
     }
 
-    if (ch === '-' && next === '-') { inLineComment = true; buf += ch + next; i += 1; continue; }
-    if (ch === '#') { inLineComment = true; buf += ch; continue; }
-    if (ch === '/' && next === '*') { inBlockComment = true; buf += ch + next; i += 1; continue; }
+    // `-- ` (dash dash space) and `#` start a comment; a bare `--` is not one,
+    // so negative numbers and `a--b` expressions are left alone.
+    if (ch === '-' && next === '-' && (sql[i + 2] === undefined || /\s/.test(sql[i + 2]))) {
+      inLineComment = true; i += 1; continue;
+    }
+    if (ch === '#') { inLineComment = true; continue; }
+    if (ch === '/' && next === '*') {
+      inBlockComment = true; buf += ' '; i += 1; continue;
+    }
     if (ch === "'" || ch === '"' || ch === '`') { quote = ch; buf += ch; continue; }
 
     if (ch === ';') {
@@ -98,16 +107,15 @@ function stripLeadingComments(stmt) {
 }
 
 function isDestructive(stmt) {
-  const bare = stripLeadingComments(stmt);
+  const bare = splitStatements(stmt).join(' ').trim();
   if (!bare) return true; // comment-only chunk: nothing to run
   return /^(USE|CREATE\s+(DATABASE|SCHEMA)|DROP\s+(DATABASE|SCHEMA))\b/i.test(bare);
 }
 
 function statementsFor(file) {
   return splitStatements(readProjectSql(file))
-    .filter((s) => s && !isDestructive(s))
-    .map(stripLeadingComments)
-    .filter(Boolean);
+    .map((s) => s.replace(/\s+/g, ' ').replace(/\( /g, '(').replace(/ \)/g, ')').trim())
+    .filter((s) => s && !isDestructive(s));
 }
 
 module.exports = { splitStatements, statementsFor, stripLeadingComments, FILES };

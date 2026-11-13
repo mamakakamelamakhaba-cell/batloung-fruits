@@ -83,7 +83,7 @@ CREATE TABLE street_vendors (
   business_name VARCHAR(150),
   telephone     VARCHAR(40),
   location      VARCHAR(120),             -- area in Maseru
-  registration_date DATE NOT NULL DEFAULT (CURRENT_DATE),
+  registration_date DATE NOT NULL DEFAULT (CURDATE()),
   status        ENUM('Active','Inactive') NOT NULL DEFAULT 'Active'
 ) ENGINE=InnoDB;
 
@@ -96,7 +96,7 @@ CREATE TABLE purchases (
   product_id    INT NOT NULL,
   quantity      INT NOT NULL CHECK (quantity > 0),
   unit_cost     DECIMAL(10,2) NOT NULL CHECK (unit_cost >= 0),
-  purchase_date DATE NOT NULL DEFAULT (CURRENT_DATE),
+  purchase_date DATE NOT NULL DEFAULT (CURDATE()),
   CONSTRAINT fk_pur_supplier FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE,
   CONSTRAINT fk_pur_product  FOREIGN KEY (product_id)  REFERENCES products(id)  ON DELETE CASCADE
 ) ENGINE=InnoDB;
@@ -107,7 +107,7 @@ CREATE TABLE purchases (
 CREATE TABLE orders (
   id          INT AUTO_INCREMENT PRIMARY KEY,
   vendor_id   INT NOT NULL,
-  order_date  DATE NOT NULL DEFAULT (CURRENT_DATE),
+  order_date  DATE NOT NULL DEFAULT (CURDATE()),
   total_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
   status      ENUM('Pending','Confirmed','Processing','Ready for Collection/Delivery',
                    'Completed','Cancelled') NOT NULL DEFAULT 'Pending',
