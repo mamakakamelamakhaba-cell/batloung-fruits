@@ -3,10 +3,12 @@ import api from '../api/client';
 import { fruitImg } from '../api/fruitImg.js';
 import PageHeader from '../components/PageHeader.jsx';
 import Modal from '../components/Modal.jsx';
+import { useToast } from '../components/Toast.jsx';
 
 const blank = { name: '', description: '', is_active: 1 };
 
 export default function Fruits() {
+  const toast = useToast();
   const [rows, setRows]     = useState([]);
   const [search, setSearch] = useState('');
   const [modal, setModal]   = useState(null);
@@ -24,12 +26,13 @@ export default function Fruits() {
     try {
       if (modal.mode === 'add') await api.post('/fruits', form);
       else await api.put(`/fruits/${modal.id}`, form);
+      toast(modal.mode === 'add' ? '🍎 Fruit added!' : '✏️ Fruit updated!', 'success');
       setModal(null); load();
     } catch (e) { setErr(e.response?.data?.message || 'Save failed'); }
   };
   const remove = async (id) => {
     if (!confirm('Delete this fruit? Related products will also be removed.')) return;
-    await api.delete(`/fruits/${id}`); load();
+    await api.delete(`/fruits/${id}`); toast('🗑️ Fruit deleted.', 'success'); load();
   };
 
   const active   = rows.filter(r => r.is_active);

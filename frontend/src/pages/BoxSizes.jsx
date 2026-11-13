@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import api from '../api/client';
 import PageHeader from '../components/PageHeader.jsx';
 import Modal from '../components/Modal.jsx';
+import { useToast } from '../components/Toast.jsx';
 
 // Box Size icons per size name
 const SIZE_ICON = { Small: '📦', Medium: '📦', Large: '📦' };
@@ -17,6 +18,7 @@ const SIZE_DESC_HINT = {
 };
 
 export default function BoxSizes() {
+  const toast = useToast();
   const [sizes, setSizes]   = useState([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null);  // the box size being edited
@@ -48,7 +50,6 @@ export default function BoxSizes() {
       setSuccess(`${editing.name} box size updated successfully!`);
       setEditing(null);
       load();
-      setTimeout(() => setSuccess(''), 3000);
     } catch (e) {
       setErr(e.response?.data?.message || 'Save failed');
     } finally {

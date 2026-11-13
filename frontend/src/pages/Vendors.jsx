@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import api from '../api/client';
 import PageHeader from '../components/PageHeader.jsx';
 import Modal from '../components/Modal.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useToast } from '../components/Toast.jsx';
 
 const blank = { name: '', business_name: '', telephone: '', location: '', status: 'Active' };
 
@@ -38,6 +39,7 @@ const vendorAccent = (name) => {
 const initials = (name) => name ? name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '?';
 
 export default function Vendors() {
+  const toast = useToast();
   const { isAdmin } = useAuth();
   const [rows, setRows]         = useState([]);
   const [search, setSearch]     = useState('');
@@ -57,6 +59,7 @@ export default function Vendors() {
     try {
       if (modal.mode === 'add') await api.post('/vendors', form);
       else await api.put(`/vendors/${modal.id}`, form);
+      toast(modal.mode === 'add' ? '🏪 Vendor registered!' : '✏️ Vendor updated!', 'success');
       setModal(null); load();
     } catch (e) { setErr(e.response?.data?.message || 'Save failed'); }
   };

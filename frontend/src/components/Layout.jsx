@@ -246,6 +246,21 @@ export default function Layout() {
 
             {/* About */}
             <div className="settings-section">
+              <div className="settings-section-title">↺ Reset</div>
+              <div className="settings-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '6px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Restore all appearance settings to their defaults.</div>
+                <button
+                  className="btn-ghost"
+                  style={{ width: '100%', marginTop: '4px' }}
+                  onClick={() => { setTheme('light'); setFontSize('normal'); if (sidebarCollapsed) toggleSidebar(); }}
+                >
+                  Reset to Defaults
+                </button>
+              </div>
+            </div>
+
+            {/* About */}
+            <div className="settings-section">
               <div className="settings-section-title">ℹ️ About</div>
               <div className="settings-about">
                 <div className="settings-about-logo">🍏 Batloung Fruits</div>

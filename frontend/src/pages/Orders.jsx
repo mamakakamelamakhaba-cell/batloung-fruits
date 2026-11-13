@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import api, { money } from '../api/client';
 import { fruitImg } from '../api/fruitImg.js';
 import PageHeader from '../components/PageHeader.jsx';
 import Modal from '../components/Modal.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useToast } from '../components/Toast.jsx';
 
 const STATUSES = ['Pending','Confirmed','Processing','Ready for Collection/Delivery','Completed','Cancelled'];
 
@@ -20,6 +21,7 @@ const STEP_ORDER = ['Pending','Confirmed','Processing','Ready for Collection/Del
 
 export default function Orders() {
   const { isAdmin } = useAuth();
+  const toast = useToast();
   const [rows, setRows]             = useState([]);
   const [statusFilter, setStatusFilter] = useState('');
   const [vendors, setVendors]       = useState([]);
@@ -51,6 +53,7 @@ export default function Orders() {
     try {
       const clean = items.filter(i => i.product_id && i.quantity > 0);
       await api.post('/orders', { vendor_id: vendorId, items: clean });
+      toast('🛒 Order placed successfully!', 'success');
       setCreate(false); setVendorId(''); setItems([{ product_id: '', quantity: 1 }]); load();
     } catch (e) { setErr(e.response?.data?.message || 'Could not create order'); }
   };

@@ -82,11 +82,24 @@ router.get('/available-stock', authenticate, async (_req, res, next) => {
   try {
     const [rows] = await pool.query(`
       SELECT f.name AS fruit, b.name AS box_size, p.selling_price,
-             (SELECT COALESCE(SUM(sm.change_qty),0)
-                FROM stock_movements sm WHERE sm.product_id = p.id) AS stock_quantity
+             GREATEST(0, (SELECT COALESCE(SUM(sm.change_qty),0)
+                FROM stock_movements sm WHERE sm.product_id = p.id)) AS stock_quantity
       FROM products p JOIN fruits f ON f.id=p.fruit_id JOIN box_sizes b ON b.id=p.box_size_id
       ORDER BY f.name, FIELD(b.name,'Small','Medium','Large')`);
     res.json(rows);
+  } catch (e) { next(e); }
+});
+
+// Purchases summary (total purchases, cost, boxes)
+router.get('/purchases-summary', authenticate, async (_req, res, next) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT
+        COUNT(*) AS total_purchases,
+        COALESCE(SUM(total_cost), 0) AS total_cost,
+        COALESCE(SUM(quantity), 0) AS total_boxes
+      FROM purchases`);
+    res.json(rows[0]);
   } catch (e) { next(e); }
 });
 

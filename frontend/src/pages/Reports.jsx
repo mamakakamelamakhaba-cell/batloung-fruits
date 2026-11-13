@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+﻿import { useEffect, useState, useCallback } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   CartesianGrid, PieChart, Pie, Cell, Legend,
@@ -118,6 +118,17 @@ export default function Reports() {
           </button>
         }
       />
+
+      {/* Info banner */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '12px',
+        background: 'linear-gradient(135deg,#eff6ff,#dbeafe)',
+        border: '1px solid #93c5fd', borderRadius: '12px',
+        padding: '12px 18px', marginBottom: '24px', fontSize: '13px', color: '#1e40af',
+      }}>
+        <span style={{ fontSize: '18px' }}>ℹ️</span>
+        <span>Charts populate from <strong>completed orders</strong> and <strong>recorded stock purchases</strong>. Place orders and mark them Completed to see data here.</span>
+      </div>
 
       {/* Summary cards */}
       <div className="summary-grid" style={{ marginBottom: '28px' }}>

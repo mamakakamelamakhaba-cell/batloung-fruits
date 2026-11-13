@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import api from '../api/client';
 import PageHeader from '../components/PageHeader.jsx';
 import Modal from '../components/Modal.jsx';
+import { useToast } from '../components/Toast.jsx';
 
 const PROVINCES = [
   'Eastern Cape','Free State','Gauteng','KwaZulu-Natal',
@@ -22,6 +23,7 @@ const mapsUrl = (s) => {
 };
 
 export default function Suppliers() {
+  const toast = useToast();
   const [rows, setRows]       = useState([]);
   const [search, setSearch]   = useState('');
   const [province, setProvince] = useState('');
@@ -39,6 +41,7 @@ export default function Suppliers() {
     try {
       if (modal.mode === 'add') await api.post('/suppliers', form);
       else await api.put(`/suppliers/${modal.id}`, form);
+      toast(modal.mode === 'add' ? '🚚 Supplier added!' : '✏️ Supplier updated!', 'success');
       setModal(null); load();
     } catch (e) { setErr(e.response?.data?.message || 'Save failed'); }
   };

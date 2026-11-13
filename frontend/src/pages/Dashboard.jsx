@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api, { money } from '../api/client';
 import { fruitImg } from '../api/fruitImg.js';
@@ -21,6 +21,7 @@ export default function Dashboard() {
   const [byFruit, setByFruit] = useState([]);
   const [byDate, setByDate]   = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
+  const [purchases, setPurchases] = useState(null);
 
   useEffect(() => {
     api.get('/reports/dashboard').then(r => setS(r.data)).catch(() => {});

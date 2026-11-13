@@ -1,11 +1,13 @@
-import { useEffect, useState, Fragment } from 'react';
+﻿import { useEffect, useState, Fragment } from 'react';
 import api, { money } from '../api/client';
 import { fruitImg } from '../api/fruitImg.js';
 import PageHeader from '../components/PageHeader.jsx';
 import Modal from '../components/Modal.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useToast } from '../components/Toast.jsx';
 
 export default function Products() {
+  const toast = useToast();
   const { isAdmin } = useAuth();
   const [rows, setRows]         = useState([]);
   const [fruits, setFruits]     = useState([]);
@@ -34,11 +36,12 @@ export default function Products() {
     try {
       if (modal.mode === 'add') await api.post('/products', form);
       else await api.put(`/products/${modal.id}`, form);
+      toast(modal.mode === 'add' ? '📦 Product added!' : '✏️ Product updated!', 'success');
       setModal(null); load();
     } catch (e) { setErr(e.response?.data?.message || 'Save failed'); }
   };
   const remove = async (id) => {
-    if (confirm('Delete this product configuration?')) { await api.delete(`/products/${id}`); load(); }
+    if (confirm('Delete this product configuration?')) { await api.delete(`/products/${id}`); toast('🗑️ Product deleted.', 'success'); load(); }
   };
 
   const filtered = rows.filter(r => {

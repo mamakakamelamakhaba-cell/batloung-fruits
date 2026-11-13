@@ -988,8 +988,10 @@ input, select, textarea { font-family: inherit; }
   inset: 0;
   background: rgba(11,37,25,0.55);
   backdrop-filter: blur(6px);
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
   z-index: 200;
   padding: 20px;
   animation: fadeIn var(--t-fast) var(--ease);
@@ -1002,10 +1004,13 @@ input, select, textarea { font-family: inherit; }
   background: #fff;
   border-radius: var(--r-xl);
   width: 100%;
-  max-width: 520px;
+  max-width: 580px;
   box-shadow: var(--sh-xl);
   animation: slideUp var(--t-med) var(--ease);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
 }
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(24px) scale(0.97); }
@@ -1018,6 +1023,7 @@ input, select, textarea { font-family: inherit; }
   justify-content: space-between;
   align-items: center;
   background: linear-gradient(135deg, #F4F7F5 0%, #fff 100%);
+  flex-shrink: 0;
 }
 .modal-head h3 {
   font-family: 'Outfit', sans-serif;
@@ -1038,7 +1044,7 @@ input, select, textarea { font-family: inherit; }
   line-height: 1;
 }
 .modal-x:hover { background: var(--danger-bg); color: var(--danger-txt); }
-.modal-body { padding: 24px; max-height: 65vh; overflow-y: auto; }
+.modal-body { padding: 24px; flex: 1; overflow-y: auto; min-height: 0; }
 .modal-foot {
   padding: 18px 24px;
   border-top: 1.5px solid var(--border-light);
@@ -1046,6 +1052,7 @@ input, select, textarea { font-family: inherit; }
   justify-content: flex-end;
   gap: 10px;
   background: #FAFCFA;
+  flex-shrink: 0;
 }
 
 /* =====================================================
@@ -2118,3 +2125,94 @@ td.low-stock { background: #fff5f5; }
 }
 [data-theme="dark"] .topbar-uname { color: var(--text); }
 [data-theme="dark"] .topbar-urole { color: var(--text-muted); }
+
+
+/* =====================================================
+   TOAST NOTIFICATIONS
+   ===================================================== */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+.toast {
+  pointer-events: all;
+  min-width: 260px;
+  max-width: 380px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: toastIn 0.25s ease;
+  cursor: pointer;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  color: var(--text);
+}
+.toast.success { background: #d1fae5; border-color: #6ee7b7; color: #065f46; }
+.toast.error   { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+.toast.info    { background: #dbeafe; border-color: #93c5fd; color: #1e40af; }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* =====================================================
+   FORM HELPERS
+   ===================================================== */
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.form-error {
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+/* =====================================================
+   DARK MODE MODAL OVERRIDES
+   ===================================================== */
+[data-theme="dark"] .modal { background: var(--card); }
+[data-theme="dark"] .modal-head { background: var(--card); border-color: var(--border); }
+[data-theme="dark"] .modal-foot { background: var(--bg); border-color: var(--border); }
+[data-theme="dark"] .modal-body label input,
+[data-theme="dark"] .modal-body label select,
+[data-theme="dark"] .modal-body label textarea { background: var(--bg); color: var(--text); border-color: var(--border); }
+[data-theme="dark"] .toast { background: var(--card); border-color: var(--border); color: var(--text); }
+
+/* =====================================================
+   MOBILE RESPONSIVE FIXES
+   ===================================================== */
+@media (max-width: 600px) {
+  .modal { max-width: 100%; border-radius: 16px 16px 0 0; }
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .form-grid-2 { grid-template-columns: 1fr; }
+  .toast-container { left: 12px; right: 12px; bottom: 12px; }
+  .toast { min-width: unset; }
+}
+
+/* =====================================================
+   PRINT STYLES
+   ===================================================== */
+@media print {
+  .sidebar, .topbar, .settings-panel, .btn-primary, .btn-ghost, .btn-danger, .btn-icon,
+  .modal-overlay, .toast-container { display: none !important; }
+  .main-content { margin: 0 !important; padding: 0 !important; }
+  body { background: #fff !important; }
+  .card, .stat-card, .data-table { box-shadow: none !important; border: 1px solid #ccc !important; }
+}

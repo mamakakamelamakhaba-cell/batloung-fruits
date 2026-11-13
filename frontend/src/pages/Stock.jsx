@@ -3,8 +3,10 @@ import api, { money } from '../api/client';
 import { fruitImg } from '../api/fruitImg.js';
 import PageHeader from '../components/PageHeader.jsx';
 import Modal from '../components/Modal.jsx';
+import { useToast } from '../components/Toast.jsx';
 
 export default function Stock() {
+  const toast = useToast();
   const [stock, setStock]         = useState([]);
   const [purchases, setPurchases] = useState([]);
   const [movements, setMovements] = useState([]);
@@ -34,6 +36,7 @@ export default function Stock() {
   const save = async () => {
     try {
       await api.post('/stock', form);
+      toast('📦 Stock purchase recorded!', 'success');
       setModal(false);
       setForm({ supplier_id: '', product_id: '', quantity: '', unit_cost: '', purchase_date: '' });
       load();
@@ -44,6 +47,7 @@ export default function Stock() {
   const saveAdjust = async () => {
     try {
       await api.post('/stock/adjust', { product_id: adjust.product_id, change_qty: Number(adjForm.change_qty), note: adjForm.note });
+      toast('⚖️ Stock adjusted!', 'success');
       setAdjust(null);
       load();
     } catch (e) { setAdjErr(e.response?.data?.message || 'Adjustment failed'); }
